@@ -5,3 +5,9 @@ export interface Role {
   created_at?: Date;
   user_id?: number;
 }
+
+
+export interface CreateRoleRequest {
+  role_name: string;
+  description: string;
+}

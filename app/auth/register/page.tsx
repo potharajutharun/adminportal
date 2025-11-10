@@ -12,23 +12,15 @@ import Link from "next/link";
 export default function RegisterPage() {
   const router = useRouter();
 
-  async function handleRegister(values: {
-    name?: string;
-    email: string;
-    password: string;
-  }) {
-    const res = await registerUser({
-      name: values.name,
-      email: values.email,
-      password: values.password,
-    });
-    if (res.status === 201 || res.status === 200) {
-      // either redirect to login or auto-login flow
-      router.push("/auth/login");
-    } else {
-      throw new Error("Register failed");
-    }
+ async function handleRegister(values: { name?: string; email: string; password: string }) {
+  const res = await registerUser(values.name || "", values.email, values.password);
+  if (res.status === 201 || res.status === 200) {
+    router.push("/auth/login");
+  } else {
+    throw new Error("Register failed");
   }
+}
+
 
   return (
     <div className="min-h-screen flex">

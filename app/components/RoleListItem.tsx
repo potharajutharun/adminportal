@@ -22,7 +22,7 @@ export default function RoleListItem({
   onEdit,
   onDelete,
   isDeleting,
-}: RoleListItemProps): JSX.Element {
+}: RoleListItemProps){
   const isGlobal = role.tenant_id === null || role.tenant_id === undefined;
 
   return (

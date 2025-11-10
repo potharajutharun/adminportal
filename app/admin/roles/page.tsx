@@ -10,7 +10,8 @@ import { Role } from "@/app/types/role";
 import RoleListItem from "@/app/components/RoleListItem";
 import Search from "@/app/components/Search";
 
-export default function RolesPage(): JSX.Element {
+export default function RolesPage() {
+
   const { tokens } = useAuth();
   const accessToken = tokens?.accessToken;
 

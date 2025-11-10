@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import apiClient from "../lib/apiClient";
-import { Role, CreateRoleRequest } from "../lib/types";
+import { Role, CreateRoleRequest } from "../types/role.js";
 
 export const useRoles = () => {
   const [roles, setRoles] = useState<Role[]>([]);
