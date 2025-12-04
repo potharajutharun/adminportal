@@ -15,9 +15,17 @@ export default function LoginPage() {
   // Must accept AuthFormValues (union), then narrow to login variant
   async function handleLogin(values: AuthFormValues) {
     // login variant: { email, password }
-    if ("email" in values && "password" in values && !("confirmpassword" in values) && !("token" in values)) {
+    if (
+      "email" in values &&
+      "password" in values &&
+      !("confirmpassword" in values) &&
+      !("token" in values)
+    ) {
       const res = await loginUser(values.email, values.password);
-      setAuthData(res.data.data, { accessToken: res.data.accessToken });
+      // console.log("Login response:", res);
+      const { accessToken, user } = res.data.data;
+
+      setAuthData({ accessToken, user });
       router.replace("/admin/dashboard");
     } else {
       // If something else comes through, treat as invalid for this page
@@ -52,7 +60,10 @@ export default function LoginPage() {
           <div className="mt-4 text-xs text-gray-400">
             By continuing, you agree to our{" "}
             <span className="text-blue-700 hover:underline">terms</span> and{" "}
-            <span className="text-blue-700 hover:underline">privacy policy</span>.
+            <span className="text-blue-700 hover:underline">
+              privacy policy
+            </span>
+            .
           </div>
         </div>
       </div>

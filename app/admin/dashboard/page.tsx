@@ -17,7 +17,7 @@ export default function DashboardPage() {
           </p>
           <p className="text-sm text-gray-500">
             Roles:{" "}
-            {user.role_id.map((role) => (
+            {user?.role_id?.map((role) => (
               <span
                 key={role.role_id}
                 className="inline-block bg-gray-200 px-2 py-1 rounded text-xs mr-2"

@@ -9,7 +9,7 @@ import Loader from "./Loader";
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
 
-   console.log("AppShell - isAuthenticated:", isAuthenticated, "loading:", loading);
+ 
   const pathname = usePathname();
   const router = useRouter();
 
@@ -32,6 +32,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return;
   }
 
+    console.log("AppShell - isAuthenticated:", isAuthenticated, "loading:", loading);
   // Logged in → prevent visiting auth pages or root
   if (isAuthenticated && (isPublic || pathname === "/")) {
     router.replace("/admin/dashboard");

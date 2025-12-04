@@ -14,11 +14,17 @@ import api from "../lib/api";
 export interface User {
   user_id: number;
   email: string;
-  role_id: { role_id: number; role_key: string }[];
+  role_id?: { role_id: number; role_key: string }[];
 }
 
 export interface Tokens {
   accessToken: string;
+}
+
+// Matches the *inner* `data` of your login response
+export interface AuthData {
+  accessToken: string;
+  user: User;
 }
 
 interface AuthContextType {
@@ -26,7 +32,7 @@ interface AuthContextType {
   tokens: Tokens | null;
   loading: boolean;
   isAuthenticated: boolean;
-  setAuthData: (user: User, tokens: Tokens) => void;
+  setAuthData: (data: AuthData) => void;
   clearAuthData: () => void;
 }
 
@@ -38,50 +44,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  useEffect(() => {
+    const restoreSession = async () => {
+      try {
+        setLoading(true);
 
-  //  console.log("AuthProvider mounted, checking for existing session...",user);
+        // Only attempt refresh if refresh cookie exists
+        if (!document.cookie.includes("refreshToken")) {
+          setLoading(false);
+          return;
+        }
 
- useEffect(() => {
-  const restoreSession = async () => {
-    try {
-      setLoading(true);
+        const refreshRes = await refreshToken();
 
-      // Only attempt refresh if refresh cookie exists
-      if (!document.cookie.includes("refreshToken")) {
+        // Support both shapes:
+        // 1) { message, data: { accessToken, user } }
+        // 2) { accessToken, user }
+        const refreshPayload = (refreshRes.data as any).data ?? refreshRes.data;
+        const { accessToken, user } = refreshPayload as AuthData;
+
+        api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+        setUser(user);
+        setTokens({ accessToken });
+      } catch (err) {
+        setUser(null);
+        setTokens(null);
+        delete api.defaults.headers.common["Authorization"];
+      } finally {
         setLoading(false);
-        return;
       }
+    };
 
-      const refreshRes = await refreshToken(); // call refresh API
-      const accessToken = refreshRes.data.accessToken;
+    restoreSession();
+  }, []);
 
-      // Set default axios header
-      api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+  // ✅ Correct: accept { user, accessToken }
+  const setAuthData = ({ user, accessToken }: AuthData) => {
+    console.log("Setting auth data:", user);
 
-      // Set user & tokens
-      setUser(refreshRes.data.data);
-      setTokens({ accessToken });
-    } catch (err) {
-      // If refresh fails, silently clear auth without affecting other API calls
-      setUser(null);
-      setTokens(null);
-      delete api.defaults.headers.common["Authorization"];
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  restoreSession();
-}, []);
-
-
-  // Function to manually update auth state
-  const setAuthData = (user: User, tokens: Tokens) => {
     setUser(user);
-    setTokens(tokens);
-    api.defaults.headers.common[
-      "Authorization"
-    ] = `Bearer ${tokens.accessToken}`;
+    setTokens({ accessToken });
+
+    // Use the fresh token, NOT the old state
+    api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
   };
 
   const clearAuthData = () => {
