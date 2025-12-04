@@ -1,26 +1,26 @@
 "use client";
-import LeftPanel from "../../components/LeftPanel";
-import SocialButton from "../../components/SocialButton";
+
 import AuthForm from "../../components/AuthForm";
-import { oauthRedirect, loginUser } from "../../lib/apis/authApi";
+import { loginUser } from "../../lib/apis/authApi";
 import { useAuth } from "../../context/AuthContext";
-import { FcGoogle } from "react-icons/fc";
-import { SiFacebook } from "react-icons/si";
-import { BsTwitterX } from "react-icons/bs";
+import LeftPanel from "@/app/components/LeftPanel";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
-
+import Sociallogins from "@/app/components/Sociallogins";
 
 export default function LoginPage() {
   const router = useRouter();
   const { setAuthData } = useAuth(); // ✅ get user from context
 
   async function handleLogin(values: { email: string; password: string }) {
+
     try {
       const res = await loginUser(values.email, values.password);
+      // console.log("Login successful:", res);
       setAuthData(res.data.data, { accessToken: res.data.accessToken });
-      router.replace("/admin/dashboard"); 
+       console.log("User logged in:", res.data.data); // ✅ log user data
+      router.replace("/admin/dashboard");
     } catch (err: any) {
       console.error("Login failed:", err.response?.data || err.message);
       alert(err.response?.data?.message || "Invalid credentials");
@@ -51,29 +51,10 @@ export default function LoginPage() {
           />
 
           <p className="text-right text-sm text-blue-700 mb-6 hover:underline">
-            <Link href="/auth/forgot-password">Forgot Password?</Link>
+            <Link href="/auth/forgotpassword">Forgot Password?</Link>
           </p>
 
-          <div className="mt-6 grid gap-3">
-            <SocialButton
-              label="Continue with Google"
-              onClick={() => oauthRedirect("google")}
-              icon={<FcGoogle className="text-2xl" />}
-              className="border hover:underline"
-            />
-            <SocialButton
-              label="Continue with Facebook"
-              onClick={() => oauthRedirect("facebook")}
-              icon={<SiFacebook className="text-blue-900 text-2xl" />}
-              className="border hover:underline"
-            />
-            <SocialButton
-              label="Continue with X (Twitter)"
-              onClick={() => oauthRedirect("x")}
-              icon={<BsTwitterX className="text-xl" />}
-              className="border hover:underline"
-            />
-          </div>
+          <Sociallogins />
 
           <div className="mt-4 text-xs text-gray-400">
             By continuing, you agree to our{" "}

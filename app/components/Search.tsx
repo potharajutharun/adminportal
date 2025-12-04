@@ -1,4 +1,3 @@
-import React from "react";
 import { Search as SearchIcon, X } from "lucide-react";
 
 type Props = {

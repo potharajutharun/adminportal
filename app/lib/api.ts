@@ -1,7 +1,7 @@
 import axios, { AxiosError } from "axios";
 import { refreshToken } from "./apis/authApi";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:4000/api/v1";
 
 const api = axios.create({
   baseURL: API_BASE,

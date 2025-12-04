@@ -4,7 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { logoutUser } from "@/app/lib/apis/authApi";
 
 export default function DashboardPage() {
-  const { user, } = useAuth();
+  const { user } = useAuth();
 
   return (
     <div className="p-6">

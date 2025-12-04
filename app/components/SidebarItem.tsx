@@ -10,7 +10,12 @@ interface SidebarItemProps {
   collapsed: boolean;
 }
 
-const SidebarItem: React.FC<SidebarItemProps> = ({ name, icon, sub = [], collapsed }) => {
+const SidebarItem: React.FC<SidebarItemProps> = ({
+  name,
+  icon,
+  sub = [],
+  collapsed,
+}) => {
   const [open, setOpen] = useState(false);
 
   const hasChildren = sub.length > 0;
@@ -25,9 +30,9 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ name, icon, sub = [], collaps
           {icon}
           {!collapsed && <span>{name}</span>}
         </div>
-        {!collapsed && hasChildren && (
-          open ? <ChevronUp size={14} /> : <ChevronDown size={14} />
-        )}
+        {!collapsed &&
+          hasChildren &&
+          (open ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
       </button>
 
       {!collapsed && open && hasChildren && (

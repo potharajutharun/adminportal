@@ -1,6 +1,4 @@
-import React from 'react';
-
-
+import React from "react";
 
 type Props = {
   label: string;
@@ -9,13 +7,18 @@ type Props = {
   className?: string;
 };
 
-export default function SocialButton({ label, onClick, icon, className }: Props) {
+export default function SocialButton({
+  label,
+  onClick,
+  icon,
+  className,
+}: Props) {
   return (
     <button
       onClick={onClick}
       className={
-        'flex items-center justify-center gap-3 w-full py-2 rounded-md border text-sm font-medium ' +
-        (className || '')
+        "flex items-center justify-center gap-3 w-full py-2 rounded-md border text-sm font-medium " +
+        (className || "")
       }
       type="button"
     >

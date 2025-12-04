@@ -8,14 +8,16 @@ import Loader from "./Loader";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
+
+   console.log("AppShell - isAuthenticated:", isAuthenticated, "loading:", loading);
   const pathname = usePathname();
   const router = useRouter();
 
   const publicRoutes = [
     "/auth/login",
     "/auth/register",
-    "/auth/forgot",
-    "/auth/reset",
+    "/auth/forgotpassword",
+    "/auth/resetpassword",
   ];
 
   const cleanPath = pathname.split("?")[0].replace(/\/$/, "");

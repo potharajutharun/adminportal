@@ -1,6 +1,3 @@
-
-
-
 export interface AssignRoleRequest {
   user_id: number;
   role_id: number;

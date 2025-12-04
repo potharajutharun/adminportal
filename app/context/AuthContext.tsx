@@ -1,12 +1,18 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
 import { refreshToken } from "../lib/apis/authApi";
 import api from "../lib/api";
 
 export interface User {
-  id: number;
+  user_id: number;
   email: string;
   role_id: { role_id: number; role_key: string }[];
 }
@@ -33,37 +39,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
 
 
-   console.log("AuthContext initialized. User:", user, "Tokens:", tokens);
+  //  console.log("AuthProvider mounted, checking for existing session...",user);
 
-  // Restore session from cookie on page reload
-  useEffect(() => {
-    const restoreSession = async () => {
-      try {
-        setLoading(true);
-        const refreshRes = await refreshToken();
-        // console.log("Refresh token response:", refreshRes);
-        const accessToken = refreshRes.data.accessToken;
-        api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+ useEffect(() => {
+  const restoreSession = async () => {
+    try {
+      setLoading(true);
 
-        // const meRes = await fetchCurrentUser(accessToken);
-        setUser(refreshRes.data.data);
-        setTokens({ accessToken });
-      } catch {
-        setUser(null);
-        setTokens(null);
-      } finally {
+      // Only attempt refresh if refresh cookie exists
+      if (!document.cookie.includes("refreshToken")) {
         setLoading(false);
+        return;
       }
-    };
 
-    restoreSession();
-  }, []);
+      const refreshRes = await refreshToken(); // call refresh API
+      const accessToken = refreshRes.data.accessToken;
+
+      // Set default axios header
+      api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+
+      // Set user & tokens
+      setUser(refreshRes.data.data);
+      setTokens({ accessToken });
+    } catch (err) {
+      // If refresh fails, silently clear auth without affecting other API calls
+      setUser(null);
+      setTokens(null);
+      delete api.defaults.headers.common["Authorization"];
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  restoreSession();
+}, []);
+
 
   // Function to manually update auth state
   const setAuthData = (user: User, tokens: Tokens) => {
     setUser(user);
     setTokens(tokens);
-    api.defaults.headers.common["Authorization"] = `Bearer ${tokens.accessToken}`;
+    api.defaults.headers.common[
+      "Authorization"
+    ] = `Bearer ${tokens.accessToken}`;
   };
 
   const clearAuthData = () => {
@@ -72,7 +90,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     delete api.defaults.headers.common["Authorization"];
     router.replace("/auth/login");
   };
-
 
   const isAuthenticated = Boolean(user && tokens?.accessToken);
 

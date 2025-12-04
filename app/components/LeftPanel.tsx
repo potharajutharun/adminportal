@@ -1,9 +1,19 @@
+"use client";
+import Image from "next/image";
 export default function LeftPanel() {
   return (
     <div className="hidden md:flex md:w-1/2 lg:w-2/3 h-screen items-center justify-center bg-gradient-to-b from-brandGradientFrom to-brandGradientTo text-white">
       <div className="w-4/5 max-w-lg">
         <div className="mb-6">
-          <div className="text-6xl font-extrabold"><img src="/Gemini_Generated_Image_o0uen0o0uen0o0ue-removebg-preview.png" alt="Logo" className="h-20" /></div>
+          <div className="text-6xl font-extrabold">
+            <Image
+              src="/Gemini_Generated_Image_o0uen0o0uen0o0ue-removebg-preview.png"
+              alt="Logo"
+              className="h-20"
+              width={80}
+              height={80}
+            />
+          </div>
         </div>
         <h1 className="text-4xl font-extrabold mb-4">
           Hello
