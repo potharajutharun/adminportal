@@ -5,6 +5,7 @@ import { logoutUser } from "@/app/lib/apis/authApi";
 
 export default function DashboardPage() {
   const { user } = useAuth();
+   console.log("User data in DashboardPage:", user);
 
   return (
     <div className="p-6">
@@ -15,17 +16,8 @@ export default function DashboardPage() {
           <p className="text-gray-700">
             Welcome, <span className="font-semibold">{user.email}</span>
           </p>
-          <p className="text-sm text-gray-500">
-            Roles:{" "}
-            {user?.role_id?.map((role) => (
-              <span
-                key={role.role_id}
-                className="inline-block bg-gray-200 px-2 py-1 rounded text-xs mr-2"
-              >
-                {role.role_key}
-              </span>
-            ))}
-          </p>
+      
+
         </div>
       ) : (
         <p className="text-gray-500">Loading user data...</p>
