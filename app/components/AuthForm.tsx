@@ -1,42 +1,65 @@
 "use client";
+
 import React, { useState } from "react";
 import PasswordView from "./PasswordView";
 import { useSearchParams } from "next/navigation";
 
 type Mode = "login" | "register" | "resetpassword" | "forgotpassword";
 
+export type AuthFormValues =
+  | { email: string; password: string } // login
+  | { email: string; password: string; confirmpassword: string } // register
+  | { email: string } // forgot password
+  | { token: string; password: string; confirmpassword: string }; // reset password
+
 type Props = {
   mode?: Mode;
-  onSubmit: (values: {
-    token?: string;
-    email: string;
-    password: string;
-  }) => Promise<void>;
+  onSubmit: (values: AuthFormValues) => Promise<void>;
 };
 
 export default function AuthForm({ mode = "login", onSubmit }: Props) {
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token") || "";
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-   const searchParams = useSearchParams();
-  const token = searchParams.get("token") || undefined;
-  
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   async function handle(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
     try {
-      await onSubmit({email, password,token });
+      switch (mode) {
+        case "login":
+          await onSubmit({ email, password });
+          break;
+
+        case "register":
+          await onSubmit({ email, password, confirmpassword: confirmPassword });
+          break;
+
+        case "forgotpassword":
+          await onSubmit({ email });
+          break;
+
+        case "resetpassword":
+          if (!token) throw new Error("Token is missing");
+          await onSubmit({ token, password, confirmpassword: confirmPassword });
+          break;
+      }
     } catch (err: any) {
       setError(
-        err?.response?.data?.message || err?.message || "Request failed"
+        err?.response?.data?.message ||
+          err?.message ||
+          "Request failed"
       );
     } finally {
       setLoading(false);
@@ -44,8 +67,8 @@ export default function AuthForm({ mode = "login", onSubmit }: Props) {
   }
 
   return (
-    <form onSubmit={handle} className="space-y-2 w-full max-w-md">
-      {mode != "resetpassword" && (
+    <form onSubmit={handle} className="space-y-4 w-full max-w-md">
+      {mode !== "resetpassword" && (
         <div>
           <label className="block text-sm font-medium mb-1">Email</label>
           <input
@@ -59,9 +82,8 @@ export default function AuthForm({ mode = "login", onSubmit }: Props) {
         </div>
       )}
 
-      {/* Password Field */}
-      {mode != "forgotpassword" && (
-        <div className="relative ">
+      {mode !== "forgotpassword" && (
+        <div className="relative">
           <label className="block text-sm font-medium mb-1">Password</label>
           <div className="flex items-center">
             <input
@@ -80,7 +102,7 @@ export default function AuthForm({ mode = "login", onSubmit }: Props) {
         </div>
       )}
 
-      {(mode === "register" || mode == "resetpassword") && (
+      {(mode === "register" || mode === "resetpassword") && (
         <div className="relative">
           <label className="block text-sm font-medium mb-1">
             Confirm Password
@@ -94,7 +116,6 @@ export default function AuthForm({ mode = "login", onSubmit }: Props) {
               className="w-full px-4 py-2 border rounded-md"
               placeholder="Confirm password"
             />
-
             <PasswordView
               toggleConfirmPassword={showConfirmPassword}
               setToggleConfirmPassword={setShowConfirmPassword}
@@ -116,6 +137,8 @@ export default function AuthForm({ mode = "login", onSubmit }: Props) {
           ? "Login"
           : mode === "register"
           ? "Register"
+          : mode === "forgotpassword"
+          ? "Send Reset Link"
           : "Reset Password"}
       </button>
     </form>

@@ -1,29 +1,27 @@
 "use client";
 
-import AuthForm from "../../components/AuthForm";
+import AuthForm, { AuthFormValues } from "../../components/AuthForm";
 import { loginUser } from "../../lib/apis/authApi";
 import { useAuth } from "../../context/AuthContext";
 import LeftPanel from "@/app/components/LeftPanel";
-
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Sociallogins from "@/app/components/Sociallogins";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { setAuthData } = useAuth(); // ✅ get user from context
+  const { setAuthData } = useAuth();
 
-  async function handleLogin(values: { email: string; password: string }) {
-
-    try {
+  // Must accept AuthFormValues (union), then narrow to login variant
+  async function handleLogin(values: AuthFormValues) {
+    // login variant: { email, password }
+    if ("email" in values && "password" in values && !("confirmpassword" in values) && !("token" in values)) {
       const res = await loginUser(values.email, values.password);
-      // console.log("Login successful:", res);
       setAuthData(res.data.data, { accessToken: res.data.accessToken });
-       console.log("User logged in:", res.data.data); // ✅ log user data
       router.replace("/admin/dashboard");
-    } catch (err: any) {
-      console.error("Login failed:", err.response?.data || err.message);
-      alert(err.response?.data?.message || "Invalid credentials");
+    } else {
+      // If something else comes through, treat as invalid for this page
+      throw new Error("Invalid form submission for login");
     }
   }
 
@@ -43,12 +41,7 @@ export default function LoginPage() {
             </Link>
           </p>
 
-          <AuthForm
-            mode="login"
-            onSubmit={async (v: { email: string; password: string }) =>
-              await handleLogin(v)
-            }
-          />
+          <AuthForm mode="login" onSubmit={handleLogin} />
 
           <p className="text-right text-sm text-blue-700 mb-6 hover:underline">
             <Link href="/auth/forgotpassword">Forgot Password?</Link>
@@ -59,10 +52,7 @@ export default function LoginPage() {
           <div className="mt-4 text-xs text-gray-400">
             By continuing, you agree to our{" "}
             <span className="text-blue-700 hover:underline">terms</span> and{" "}
-            <span className="text-blue-700 hover:underline">
-              privacy policy
-            </span>
-            .
+            <span className="text-blue-700 hover:underline">privacy policy</span>.
           </div>
         </div>
       </div>

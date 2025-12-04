@@ -1,31 +1,47 @@
 "use client";
-import LeftPanel from "../../components/LeftPanel";
 
-import AuthForm from "../../components/AuthForm";
+import LeftPanel from "../../components/LeftPanel";
+import AuthForm, { AuthFormValues } from "../../components/AuthForm";
 import { registerUser } from "../../lib/apis/authApi";
 import { useRouter } from "next/navigation";
-
 import Link from "next/link";
-import validateEmail from "@/app/utils/emailvalidation";
 import { validatePassword } from "@/app/utils/validatepassword";
 import Sociallogins from "@/app/components/Sociallogins";
+import validateEmail from "@/app/utils/emailvalidation";
 
 export default function RegisterPage() {
   const router = useRouter();
 
-  async function handleRegister(values: { email: string; password: string }) {
-    if (!validateEmail(values.email)) {
-      throw new Error("Invalid email format");
-    }
-    if (!validatePassword(values.password)) {
-      throw new Error("Password does not meet complexity requirements");
-    }
+  // Must accept AuthFormValues (union), then narrow inside
+  async function handleRegister(values: AuthFormValues) {
+    // Only the "register" variant has email + confirmpassword
+    if ("email" in values && "confirmpassword" in values) {
+      const { email, password, confirmpassword } = values;
 
-    const res = await registerUser(values.email, values.password);
-    if (res.status === 201) {
-      router.push("/auth/login");
+      if (!validateEmail(email)) {
+        throw new Error("Invalid email format");
+      }
+
+      if (!validatePassword(password)) {
+        throw new Error(
+          "Password does not meet complexity requirements"
+        );
+      }
+
+      if (password !== confirmpassword) {
+        throw new Error("Passwords do not match");
+      }
+
+      const res = await registerUser(email, password);
+
+      if (res.status === 201) {
+        router.push("/auth/login");
+      } else {
+        throw new Error(res?.data?.message || "Registration failed");
+      }
     } else {
-      throw new Error("Register failed");
+      // This should never happen when mode="register"
+      throw new Error("Invalid form submission for register");
     }
   }
 
@@ -45,14 +61,8 @@ export default function RegisterPage() {
             </Link>
           </p>
 
-          <AuthForm
-            mode="register"
-            onSubmit={async (v: {
-              name?: string;
-              email: string;
-              password: string;
-            }) => handleRegister(v)}
-          />
+          {/* This is fine now because handleRegister matches (values: AuthFormValues) */}
+          <AuthForm mode="register" onSubmit={handleRegister} />
 
           <Sociallogins />
 
