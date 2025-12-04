@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:4000/api/v1",
+  baseURL: "https://auth-service-pmo0.onrender.com/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
