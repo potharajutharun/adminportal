@@ -14,10 +14,10 @@ export const logoutUser = () => api.post("/auth/logout");
 export const refreshToken = () => api.post("/auth/refresh");
 
 export const forgotpassword = (email: string) =>
-  api.post("/auth/forgot-password", { email });
+  api.post("/auth/forgotpassword", { email });
 
 export const resetPassword = (token: string, newPassword: string) =>
-  api.post("/auth/reset-password", {
+  api.post("/auth/resetpassword", {
     token,
     newPassword,
   });
