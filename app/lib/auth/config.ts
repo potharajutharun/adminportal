@@ -29,6 +29,7 @@ export const resolveTenantId = (overrideTenantId?: number): number => {
   );
 };
 
+
 export const buildGoogleOAuthUrl = (tenantId?: number) => {
   const resolvedTenantId = resolveTenantId(tenantId);
   const query = new URLSearchParams({ tenant_id: String(resolvedTenantId) });
