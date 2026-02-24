@@ -1,6 +1,11 @@
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
 import { extractAuthPayload } from "./auth/contracts";
 import { AUTH_API_BASE } from "./auth/config";
+import {
+  clearStoredRefreshToken,
+  getStoredRefreshToken,
+  setStoredRefreshToken,
+} from "./auth/session";
 
 type RetryableRequestConfig = AxiosRequestConfig & {
   _retry?: boolean;
@@ -59,8 +64,22 @@ api.interceptors.response.use(
         isRefreshing = true;
 
         try {
-          const response = await refreshClient.post("/auth/refreshtoken");
-          const { accessToken } = extractAuthPayload(response.data);
+          const refreshTokenValue = getStoredRefreshToken();
+          if (!refreshTokenValue) {
+            throw error;
+          }
+
+          const response = await refreshClient.post(
+            "/auth/refreshtoken",
+            { refreshToken: refreshTokenValue }
+          );
+          const { accessToken, refreshToken } = extractAuthPayload(
+            response.data
+          );
+
+          if (refreshToken) {
+            setStoredRefreshToken(refreshToken);
+          }
 
           onRefreshed(accessToken);
           api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
@@ -72,6 +91,7 @@ api.interceptors.response.use(
 
           return api(originalRequest);
         } catch (refreshError) {
+          clearStoredRefreshToken();
           onRefreshFailed(refreshError);
           throw refreshError;
         } finally {

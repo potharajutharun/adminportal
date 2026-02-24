@@ -4,11 +4,11 @@ import { useAuth } from "../../context/AuthContext";
 import { logoutUser } from "@/app/lib/apis/authApi";
 
 export default function DashboardPage() {
-  const { user, clearAuthData } = useAuth();
+  const { user, tokens, clearAuthData } = useAuth();
 
   const handleLogout = async () => {
     try {
-      await logoutUser();
+      await logoutUser(tokens?.refreshToken || undefined);
     } catch {
       // local session must still be cleared even if backend logout fails
     } finally {

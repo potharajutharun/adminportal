@@ -23,9 +23,9 @@ export default function LoginPage() {
       !("token" in values)
     ) {
       const res = await loginUser(values.email, values.password);
-      const { accessToken, user } = extractAuthPayload(res.data);
+      const { accessToken, user, refreshToken } = extractAuthPayload(res.data);
 
-      setAuthData({ accessToken, user });
+      setAuthData({ accessToken, user, refreshToken });
       router.replace("/admin/dashboard");
     } else {
       // If something else comes through, treat as invalid for this page

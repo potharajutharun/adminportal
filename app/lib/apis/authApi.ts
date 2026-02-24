@@ -19,7 +19,11 @@ export const registerUser = (
 export const logoutUser = (refreshToken?: string) =>
   api.post("/auth/logout", refreshToken ? { refreshToken } : {});
 
-export const refreshToken = () => api.post("/auth/refreshtoken");
+export const refreshToken = (refreshTokenValue?: string) =>
+  api.post(
+    "/auth/refreshtoken",
+    refreshTokenValue ? { refreshToken: refreshTokenValue } : {}
+  );
 
 export const forgotpassword = (email: string) =>
   api.post("/auth/forgotpassword", { email });

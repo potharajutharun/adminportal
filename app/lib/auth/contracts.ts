@@ -11,6 +11,7 @@ export interface AuthUser {
 export interface AuthPayload {
   accessToken: string;
   user: AuthUser;
+  refreshToken?: string;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -18,7 +19,13 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 const isAuthPayload = (value: unknown): value is AuthPayload => {
   if (!isRecord(value)) return false;
-  return typeof value.accessToken === "string" && isRecord(value.user);
+  const hasRequiredFields =
+    typeof value.accessToken === "string" && isRecord(value.user);
+  if (!hasRequiredFields) return false;
+  if ("refreshToken" in value && typeof value.refreshToken !== "string") {
+    return false;
+  }
+  return true;
 };
 
 export const extractAuthPayload = (raw: unknown): AuthPayload => {
