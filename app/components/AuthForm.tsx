@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import PasswordView from "./PasswordView";
 import { useSearchParams } from "next/navigation";
+import { getErrorMessage } from "@/app/lib/getErrorMessage";
 
 type Mode = "login" | "register" | "resetpassword" | "forgotpassword";
 
@@ -55,12 +56,8 @@ export default function AuthForm({ mode = "login", onSubmit }: Props) {
           await onSubmit({ token, password, confirmpassword: confirmPassword });
           break;
       }
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Request failed"
-      );
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Request failed"));
     } finally {
       setLoading(false);
     }

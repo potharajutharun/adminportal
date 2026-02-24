@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import apiClient from "../lib/apiClient";
 import { Role, CreateRoleRequest } from "../types/role.js";
+import { getErrorMessage } from "@/app/lib/getErrorMessage";
 
 export const useRoles = () => {
   const [roles, setRoles] = useState<Role[]>([]);
@@ -14,8 +15,8 @@ export const useRoles = () => {
     try {
       const res = await apiClient.get("/roles/list");
       setRoles(res.data.roles || []);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to fetch roles");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to fetch roles"));
     } finally {
       setLoading(false);
     }
@@ -25,8 +26,8 @@ export const useRoles = () => {
     try {
       const res = await apiClient.post("/roles/create", payload);
       setRoles((prev) => [...prev, res.data.role]);
-    } catch (err: any) {
-      throw new Error(err.response?.data?.message || "Failed to create role");
+    } catch (err: unknown) {
+      throw new Error(getErrorMessage(err, "Failed to create role"));
     }
   };
 
@@ -35,8 +36,8 @@ export const useRoles = () => {
       // backend should have delete endpoint
       await apiClient.post("/roles/remove", { role_id: id });
       setRoles((prev) => prev.filter((r) => r.role_id !== id));
-    } catch (err: any) {
-      throw new Error(err.response?.data?.message || "Failed to delete role");
+    } catch (err: unknown) {
+      throw new Error(getErrorMessage(err, "Failed to delete role"));
     }
   };
 

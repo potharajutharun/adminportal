@@ -5,6 +5,7 @@ import { LuSendHorizontal } from "react-icons/lu";
 import { createRole } from "../lib/apis/RoleApi";
 import { useAuth } from "../context/AuthContext";
 import { Role } from "@/app/types/role";
+import { getErrorMessage } from "@/app/lib/getErrorMessage";
 
 interface CreateRoleCompProps {
   setRoles: React.Dispatch<React.SetStateAction<Role[]>>;
@@ -33,8 +34,8 @@ export const CreateRoleComp = ({ setRoles }: CreateRoleCompProps) => {
 
       setRoleKey("");
       setShowInput(false);
-    } catch (err: any) {
-      alert(err.message || "Failed to create role");
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, "Failed to create role"));
     } finally {
       setLoading(false);
     }

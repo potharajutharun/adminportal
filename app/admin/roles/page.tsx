@@ -9,6 +9,7 @@ import {CreateRoleComp} from "@/app/components/createRoleComp";
 import { Role } from "@/app/types/role";
 import RoleListItem from "@/app/components/RoleListItem";
 import Search from "@/app/components/Search";
+import { getErrorMessage } from "@/app/lib/getErrorMessage";
 
 export default function RolesPage() {
 
@@ -30,8 +31,8 @@ export default function RolesPage() {
       const data = res?.data;
       if (!Array.isArray(data)) throw new Error("Invalid response format");
       setRoles(data);
-    } catch (err: any) {
-      setError(err?.message || "Failed to fetch roles");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Failed to fetch roles"));
       console.error("fetchRoles error:", err);
     } finally {
       setLoading(false);
@@ -60,11 +61,11 @@ export default function RolesPage() {
       try {
         await deleteRole(accessToken, roleId);
         setRoles((prev) => prev.filter((r) => r.role_id !== roleId));
-      } catch (err: any) {
-        const msg =
-          err?.message?.includes?.("in use")
-            ? "Cannot delete role: It is currently assigned to entities."
-            : `Failed to delete role ${roleId}.`;
+      } catch (err: unknown) {
+        const errorMessage = getErrorMessage(err, `Failed to delete role ${roleId}.`);
+        const msg = errorMessage.includes("in use")
+          ? "Cannot delete role: It is currently assigned to entities."
+          : errorMessage;
         setError(msg);
         console.error("Delete role error:", err);
       } finally {

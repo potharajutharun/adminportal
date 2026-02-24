@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import api from "@/app/lib/api";
 import { useAuth } from "@/app/context/AuthContext";
 import { Loader2, Edit2, CheckCircle2, XCircle } from "lucide-react";
+import { getErrorMessage } from "@/app/lib/getErrorMessage";
 
 interface User {
   user_id: number;
@@ -21,9 +22,6 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [editForm, setEditForm] = useState({ name: "", email: "", role: "" });
-
   // Fetch users
   useEffect(() => {
     if (!accessToken) return;
@@ -36,9 +34,9 @@ export default function UsersPage() {
         });
         console.log(res, "users");
         setUsers(res.data.data);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error(err);
-        setError("Failed to fetch users");
+        setError(getErrorMessage(err, "Failed to fetch users"));
       } finally {
         setLoading(false);
       }
@@ -68,29 +66,7 @@ export default function UsersPage() {
 
   // Start editing
   const handleEdit = (user: User) => {
-    setEditingUser(user);
-    setEditForm({
-      name: user.full_name || "",
-      email: user.email || "",
-      role: user.role_key || "",
-    });
-  };
-
-  // Save user edit
-  const handleSaveEdit = async () => {
-    if (!editingUser) return;
-    try {
-      const res = await api.put(`/users/${editingUser.user_id}`, editForm, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      setUsers((prev) =>
-        prev.map((u) => (u.user_id === editingUser.user_id ? res.data : u))
-      );
-      setEditingUser(null);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to update user");
-    }
+    alert(`Edit UI is not connected yet for ${user.full_name || user.email}`);
   };
 
   if (loading)
@@ -166,42 +142,6 @@ export default function UsersPage() {
           </table>
         </div>
       )}
-
-      {/* Edit Dialog */}
-      {/* <Modal open={!!editingUser} onOpenChange={() => setEditingUser(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <input
-              placeholder="Name"
-              value={editForm.name}
-              onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-            />
-            <input
-              placeholder="Email"
-              value={editForm.email}
-              onChange={(e) =>
-                setEditForm({ ...editForm, email: e.target.value })
-              }
-            />
-            <input
-              placeholder="Role"
-              value={editForm.role}
-              onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-            />
-            <div className="flex justify-end gap-2 mt-4">
-              <button
-                onClick={() => setEditingUser(null)}
-              >
-                Cancel
-              </button>
-              <button onClick={handleSaveEdit}>Save</button>
-            </div>
-          </div>
-        </DialogContent>
-      </Modal> */}
     </div>
   );
 }

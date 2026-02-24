@@ -3,7 +3,7 @@
 import LeftPanel from "../../components/LeftPanel";
 import AuthForm, { AuthFormValues } from "../../components/AuthForm";
 import { registerUser } from "../../lib/apis/authApi";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { validatePassword } from "@/app/utils/validatepassword";
 import Sociallogins from "@/app/components/Sociallogins";

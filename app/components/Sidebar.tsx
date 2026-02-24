@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import SidebarItem from "./SidebarItem";
 import Link from "next/link";
+import Image from "next/image";
 
 const Sidebar: React.FC = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -78,9 +79,11 @@ const Sidebar: React.FC = () => {
           } overflow-hidden`}
         >
           
-          <img
+          <Image
             src="/Gemini_Generated_Image_o0uen0o0uen0o0ue-removebg-preview.png"
             alt="Logo"
+            width={160}
+            height={40}
             className="h-10 w-auto object-contain"
           />
           {!collapsed && (
