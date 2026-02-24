@@ -1,61 +1,93 @@
-import axios, { AxiosError } from "axios";
-import { refreshToken } from "./apis/authApi";
+import axios, { AxiosError, AxiosRequestConfig } from "axios";
+import { extractAuthPayload } from "./auth/contracts";
+import { AUTH_API_BASE } from "./auth/config";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://auth-service-pmo0.onrender.com/api/v1";
+type RetryableRequestConfig = AxiosRequestConfig & {
+  _retry?: boolean;
+};
 
 const api = axios.create({
-  baseURL: API_BASE,
-  withCredentials: true, // cookies sent automatically
+  baseURL: AUTH_API_BASE,
+  withCredentials: true,
+});
+
+const refreshClient = axios.create({
+  baseURL: AUTH_API_BASE,
+  withCredentials: true,
 });
 
 let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
+let refreshSubscribers: {
+  resolve: (token: string) => void;
+  reject: (error: unknown) => void;
+}[] = [];
 
-// Helper to retry queued requests after refresh
-const subscribeTokenRefresh = (cb: (token: string) => void) => {
-  refreshSubscribers.push(cb);
+const subscribeTokenRefresh = (
+  resolve: (token: string) => void,
+  reject: (error: unknown) => void
+) => {
+  refreshSubscribers.push({ resolve, reject });
 };
 
 const onRefreshed = (token: string) => {
-  refreshSubscribers.forEach((cb) => cb(token));
+  refreshSubscribers.forEach((subscriber) => subscriber.resolve(token));
   refreshSubscribers = [];
 };
 
-// Axios response interceptor for 401 handling
+const onRefreshFailed = (error: unknown) => {
+  refreshSubscribers.forEach((subscriber) => subscriber.reject(error));
+  refreshSubscribers = [];
+};
+
+const isRefreshRequest = (request?: RetryableRequestConfig) => {
+  return request?.url?.includes("/auth/refreshtoken");
+};
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest: any = error.config;
+    const originalRequest = (error.config || {}) as RetryableRequestConfig;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !isRefreshRequest(originalRequest)
+    ) {
       originalRequest._retry = true;
 
       if (!isRefreshing) {
         isRefreshing = true;
-        try {
-          const res = await refreshToken(); // backend reads cookie, issues new token
-          const newAccessToken = res.data.accessToken;
-          onRefreshed(newAccessToken);
-          isRefreshing = false;
 
-          api.defaults.headers.common["Authorization"] = `Bearer ${newAccessToken}`;
-          originalRequest.headers["Authorization"] = `Bearer ${newAccessToken}`;
+        try {
+          const response = await refreshClient.post("/auth/refreshtoken");
+          const { accessToken } = extractAuthPayload(response.data);
+
+          onRefreshed(accessToken);
+          api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+
+          originalRequest.headers = {
+            ...(originalRequest.headers || {}),
+            Authorization: `Bearer ${accessToken}`,
+          };
+
           return api(originalRequest);
-        } catch (err) {
+        } catch (refreshError) {
+          onRefreshFailed(refreshError);
+          throw refreshError;
+        } finally {
           isRefreshing = false;
-          refreshSubscribers = [];
-          // Refresh failed — force logout logic can be handled in AuthContext
-          throw err;
         }
-      } else {
-        // Wait until refresh is done, then retry
-        return new Promise((resolve) => {
-          subscribeTokenRefresh((token: string) => {
-            originalRequest.headers["Authorization"] = `Bearer ${token}`;
-            resolve(api(originalRequest));
-          });
-        });
       }
+
+      return new Promise((resolve, reject) => {
+        subscribeTokenRefresh((token: string) => {
+          originalRequest.headers = {
+            ...(originalRequest.headers || {}),
+            Authorization: `Bearer ${token}`,
+          };
+          resolve(api(originalRequest));
+        }, reject);
+      });
     }
 
     return Promise.reject(error);

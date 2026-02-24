@@ -3,7 +3,7 @@
 import LeftPanel from "../../components/LeftPanel";
 import AuthForm, { AuthFormValues } from "../../components/AuthForm";
 import { registerUser } from "../../lib/apis/authApi";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { validatePassword } from "@/app/utils/validatepassword";
 import Sociallogins from "@/app/components/Sociallogins";
@@ -11,6 +11,7 @@ import validateEmail from "@/app/utils/emailvalidation";
 
 export default function RegisterPage() {
   const router = useRouter();
+  // const searchParams = useSearchParams();
 
   // Must accept AuthFormValues (union), then narrow inside
   async function handleRegister(values: AuthFormValues) {
@@ -32,7 +33,10 @@ export default function RegisterPage() {
         throw new Error("Passwords do not match");
       }
 
-      const res = await registerUser(email, password);
+      // const tenantParam = searchParams.get("tenant_id");
+      // const parsedTenantId = tenantParam ? Number.parseInt(tenantParam, 10) : undefined;
+
+      const res = await registerUser(email, password, 12);
 
       if (res.status === 201) {
         router.push("/auth/login");

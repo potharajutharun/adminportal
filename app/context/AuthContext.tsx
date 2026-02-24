@@ -9,26 +9,20 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 import { refreshToken } from "../lib/apis/authApi";
+import { extractAuthPayload, AuthUser } from "../lib/auth/contracts";
 import api from "../lib/api";
-
-export interface User {
-  user_id: number;
-  email: string;
-  role_id?: { role_id: number; role_key: string }[];
-}
 
 export interface Tokens {
   accessToken: string;
 }
 
-// Matches the *inner* `data` of your login response
 export interface AuthData {
   accessToken: string;
-  user: User;
+  user: AuthUser;
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   tokens: Tokens | null;
   loading: boolean;
   isAuthenticated: boolean;
@@ -39,7 +33,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [tokens, setTokens] = useState<Tokens | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -48,25 +42,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const restoreSession = async () => {
       try {
         setLoading(true);
-
-        // Only attempt refresh if refresh cookie exists
-        if (!document.cookie.includes("refreshToken")) {
-          setLoading(false);
-          return;
-        }
-
         const refreshRes = await refreshToken();
-
-        // Support both shapes:
-        // 1) { message, data: { accessToken, user } }
-        // 2) { accessToken, user }
-        const refreshPayload = (refreshRes.data as any).data ?? refreshRes.data;
-        const { accessToken, user } = refreshPayload as AuthData;
+        const { accessToken, user } = extractAuthPayload(refreshRes.data);
 
         api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
         setUser(user);
         setTokens({ accessToken });
-      } catch (err) {
+      } catch {
         setUser(null);
         setTokens(null);
         delete api.defaults.headers.common["Authorization"];
@@ -78,14 +60,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     restoreSession();
   }, []);
 
-  // ✅ Correct: accept { user, accessToken }
   const setAuthData = ({ user, accessToken }: AuthData) => {
-    console.log("Setting auth data:", user);
-
     setUser(user);
     setTokens({ accessToken });
-
-    // Use the fresh token, NOT the old state
     api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
   };
 

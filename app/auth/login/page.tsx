@@ -3,6 +3,7 @@
 import AuthForm, { AuthFormValues } from "../../components/AuthForm";
 import { loginUser } from "../../lib/apis/authApi";
 import { useAuth } from "../../context/AuthContext";
+import { extractAuthPayload } from "../../lib/auth/contracts";
 import LeftPanel from "@/app/components/LeftPanel";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -22,8 +23,7 @@ export default function LoginPage() {
       !("token" in values)
     ) {
       const res = await loginUser(values.email, values.password);
-      // console.log("Login response:", res);
-      const { accessToken, user } = res.data.data;
+      const { accessToken, user } = extractAuthPayload(res.data);
 
       setAuthData({ accessToken, user });
       router.replace("/admin/dashboard");
