@@ -10,7 +10,7 @@ const parseTenantId = (value: string | undefined): number | null => {
 export const AUTH_API_BASE = normalizeBaseUrl(
   process.env.NEXT_PUBLIC_AUTH_API_BASE ??
     process.env.NEXT_PUBLIC_API_BASE ??
-    "http://localhost:4000/api/v1"
+    "https://auth-service-pmo0.onrender.com/api/v1"
 );
 
 export const DEFAULT_AUTH_TENANT_ID = parseTenantId(
